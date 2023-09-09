@@ -78,3 +78,41 @@ k3d-k3s-dev-agent-2    Ready    <none>                 7m29s   v1.21.7+k3s1
 D:\Projects\k8s
 ```
 ==============================================================
+
+# Ví dụ [01.HelloWorld]
+==============================================================
+
+Ta sẽ deploy `nginx` example như sau:
+- App `nginx` xuất ra port 80, map ra port của pod là 80
+- Các pods được gắn label là `app: main-service-hello-world`
+- Tạo Service để móc nối request tới Pods dựa theo label `app: main-service-hello-world`, service mở cổng `5100` và mapping vào cổng `80` của pods đã chọn
+- Tạo Ingress để mapping cổng `80` của Cluster với cổng `5100` của Service
+- Bản thân k3d đã tạo 1 Proxy Server để mapping port `80` của Cluster ra port `7100` của laptop/desktop
+
+https://doc.traefik.io/traefik/providers/kubernetes-ingress/<br/>
+(Sử dụng Ingress Traefik Controller)
+
+Ingress dùng để tạo quy tắc traffic HTTP/HTTPS request từ public network vào trong Cluster
+Nó đóng vai trò như một Proxy Server (API Gateway cho Cluster)
+
+Thông thường Ingress sẽ điều hướng request từ bên ngoài vào trong service chính của Cluster mà thôi.
+Các services khác bên trong Cluster sẽ nói chuyện với nhau thông qua kind:Service,
+	thường dùng ClusterIP để giao tiếp với nhau.
+	
+Truy cập vào service chính của Cluster:
+	http://localhost:7100
+  
+```shell script
+                FORWARD                   Ingress           Service(:5100)+LB
+localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(nginx:80)
+```
+
+- Phần Ingress tạo bằng YAML
+```shell script
+kubectl apply -f deploy-nginx-hello-world.yaml
+```
+
+- Xóa resource
+```shell script
+kubectl delete -f deploy-nginx-hello-world.yaml
+```
