@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: s2s-user-service-deployment
+spec:
+  # số POD tạo ra
+  replicas: 2
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=s2s-user-service-deployment"
+  selector:
+    matchLabels:
+      app: s2s-user-service
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: s2s-user-service-tmpl
+      labels:
+        app: s2s-user-service
+    spec:
+      containers:
+      - name: s2s-user-service-container
+        image: tdchien1982/k8s:service_to_service-user
+        env:
+          - name: PORT
+            value: "9238"
+
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: 9238
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2s-user-service
+spec:
+  selector:
+     app: s2s-user-service
+  type: ClusterIP
+  ports:
+    - name: config-port-9238
+      port: 9238 # Port của Service định nghĩa ra
+      targetPort: 9238 # Port trên các PODS
+      

@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: s2s-main-service-deployment
+spec:
+  # số POD tạo ra
+  replicas: 3
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=s2s-main-service"
+  selector:
+    matchLabels:
+      app: s2s-main-service
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: s2s-service-main-tmpl
+      labels:
+        app: s2s-main-service
+    spec:
+      containers:
+      - name: s2s-main-service-container
+        image: tdchien1982/k8s:service_to_service-main
+        env:
+        - name: PORT
+          value: "9237"
+        - name: USER_SERVICE_ADDRESS
+          value: "http://s2s-user-service:9238"
+        - name: BOOK_SERVICE_ADDRESS
+          value: "http://s2s-book-service:9239"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: 9237
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2s-main-service
+spec:
+  selector:
+     app: s2s-main-service
+  type: ClusterIP
+  ports:
+    - name: config-port-9237
+      port: 9237 # Port của Service định nghĩa ra
+      targetPort: 9237 # Port trên các PODS
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: server-s2s-main-service
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
+spec:
+  rules:
+    - host: k8s.service-call-service.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: s2s-main-service
+                port:
+                  number: 9237     # Service giao tiếp qua port 9237
