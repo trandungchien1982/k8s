@@ -43,10 +43,11 @@ D:\Projects\k8s
 ```
 ==============================================================
 
-# Ví dụ [02.TwoPublicServices]
+# Ví dụ [03.ServiceCallService]
 ==============================================================
 
-- Ta sẽ deploy 2 services và config Ingress Treafix tùy theo domain name request đến mà sẽ forward qua service thích hợp:
+- Ta sẽ deploy 1 service chính `main-service` để giao tiếp với OuterNetwork:
+(`main-service` sử dụng )
     - Request đến `http://restful-service1.com` thì sẽ forward qua `service-1` (public LB)
     - Request đến `http://restful-service2.com` thì sẽ forward qua `service-2` (public LB)
     - Ta có thể giả lập 2 tên miền trên trong file /etc/hosts (Unbuntu 20.04) hoặc C:\Windows\system32\drivers\etc\hosts

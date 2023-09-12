@@ -1,0 +1,137 @@
+# Deployment for 2 public services
+
+####################################
+# Service 01: nginx
+####################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: service1-deployment
+spec:
+  # số POD tạo ra
+  replicas: 3
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-1"
+  selector:
+    matchLabels:
+      app: service-1
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: service1-pod-tmpl
+      labels:
+        app: service-1
+    spec:
+      containers:
+      - name: service1-container
+        image: nginx
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2s-service1
+spec:
+  selector:
+    app: service-1
+  type: ClusterIP
+  ports:
+    - name: config-port-service1
+      port: 5200 # Port của Service định nghĩa ra
+      targetPort: 80 # Port trên các PODS
+
+
+---
+####################################
+# Service 02: angular
+####################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: service2-deployment
+spec:
+  # số POD tạo ra
+  replicas: 2
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-2"
+  selector:
+    matchLabels:
+      app: service-2
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: service2-pod-tmpl
+      labels:
+        app: service-2
+    spec:
+      containers:
+        - name: service2-container
+          image: tdchien1982/angular:10.build-docker-nginx
+          env:
+            - name: PORT
+              value: "80"
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2s-service2
+spec:
+  selector:
+    app: service-2
+  type: ClusterIP
+  ports:
+    - name: config-port-service2
+      port: 6200 # Port của Service định nghĩa ra
+      targetPort: 80 # Port trên các PODS
+
+
+#################################################
+# Config Ingress để routing HTTP Request dựa theo domain name để forward vào `service-1` hoặc `service-2`
+#################################################
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: two-public-services-routing
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
+spec:
+  rules:
+    - host: restful-service1.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: s2s-service1
+                port:
+                  number: 5200     # Service giao tiếp qua port 5200
+
+    - host: restful-service2.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: s2s-service2
+                port:
+                  number: 6200     # Service giao tiếp qua port 6200

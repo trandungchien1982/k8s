@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: s2s-book-service-deployment
+spec:
+  # số POD tạo ra
+  replicas: 2
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=s2s-book-service-deployment"
+  selector:
+    matchLabels:
+      app: s2s-book-service
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: s2s-book-service-tmpl
+      labels:
+        app: s2s-book-service
+    spec:
+      containers:
+      - name: s2s-book-service-container
+        image: tdchien1982/k8s:service_to_service-book
+        env:
+          - name: PORT
+            value: "9239"
+          - name: SUB_SYSTEM_21
+            value: "http://s2s-book-sub-service-1:9241"
+          - name: SUB_SYSTEM_22
+            value: "http://s2s-book-sub-service-2:9242"
+          - name: SUB_SYSTEM_23
+            value: "http://s2s-book-sub-service-3:9243"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: 9239
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2s-book-service
+spec:
+  selector:
+     app: s2s-book-service
+  type: ClusterIP
+  ports:
+    - name: config-port-9239
+      port: 9239 # Port của Service định nghĩa ra
+      targetPort: 9239 # Port trên các PODS
