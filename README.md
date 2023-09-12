@@ -46,39 +46,46 @@ D:\Projects\k8s
 # Ví dụ [03.ServiceCallService]
 ==============================================================
 
-- Ta sẽ deploy 1 service chính `main-service` để giao tiếp với OuterNetwork:
-(`main-service` sử dụng )
-    - Request đến `http://restful-service1.com` thì sẽ forward qua `service-1` (public LB)
-    - Request đến `http://restful-service2.com` thì sẽ forward qua `service-2` (public LB)
-    - Ta có thể giả lập 2 tên miền trên trong file /etc/hosts (Unbuntu 20.04) hoặc C:\Windows\system32\drivers\etc\hosts
-    ```shell script
-        127.0.0.1 restful-service1.com
-        127.0.0.1 restful-service2.com
-    ```
+- Ta sẽ deploy 1 service chính `main-service` để giao tiếp với OuterNetwork. 
+Bản thân `main-service` sẽ giao tiếp RESTful APIs nội bộ với các service khác trong cluster k8s để lấy thông tin
 
 - Bản thân k3d đã tạo 1 Proxy Server để mapping port `80` của Cluster ra port `7100` của laptop/desktop
 
-- Truy cập vào 2 service trên từ laptop/desktop như sau:<br/>
-    http://restful-service1.com:7100<br/>
-    http://restful-service2.com:7100<br/>
+- Truy cập vào `main-service` từ laptop/desktop như sau:<br/>
+    http://localhost:7100/main-info<br/>
 	
 - Sơ đồ truy cập request như sau : 
 
 ```shell script
-                           FORWARD                   Ingress           Service(:5200)+LB
-restful-service1.com:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(nginx:80)
+                FORWARD                   Ingress          Service(:9237)+LB
+localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(main-service:9237)
 
 
-                           FORWARD                   Ingress           Service(:6200)+LB
-restful-service2.com:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(angular:80)
+[Bên trong Cluster K8S, Private Call RESTful APIs]
+              (http://s2s-user-service:9238)          Service(:9238)+LB
+main-service -------------------------------> Cluster ------------------> Pods(user-service:9238)
+
+              (http://s2s-book-service:9239)          Service(:9239)+LB
+main-service -------------------------------> Cluster ------------------> Pods(book-service:9239)
+
+
+              http://s2s-book-sub-service-1:9241)          Service(:9241)+LB
+book-service ------------------------------------> Cluster ------------------> Pods(book-sub1-service:9241)
+
+              http://s2s-book-sub-service-2:9242)          Service(:9242)+LB
+book-service ------------------------------------> Cluster ------------------> Pods(book-sub2-service:9242)
+
+              http://s2s-book-sub-service-3:9243)          Service(:9243)+LB
+book-service ------------------------------------> Cluster ------------------> Pods(book-sub3-service:9243)
+
 ```
 
 - Apply manifiest vào K8S
 ```shell script
-kubectl apply -f deploy-2-public-services.yaml
+./02.deploy-services-k8s.sh
 ```
 
 - Xóa resource
 ```shell script
-kubectl delete -f deploy-2-public-services.yaml
+./03.delete-services-k8s.sh
 ```

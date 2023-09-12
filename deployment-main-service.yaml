@@ -57,10 +57,10 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "false"
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
+
 spec:
   rules:
-    - host: k8s.service-call-service.com
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix
@@ -68,4 +68,4 @@ spec:
               service:
                 name: s2s-main-service
                 port:
-                  number: 9237     # Service giao tiếp qua port 9237
+                  number: 9237 # Service giao tiếp qua port 9237
