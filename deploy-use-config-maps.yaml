@@ -1,0 +1,104 @@
+# Deployment for use ConfigMap
+
+##################################################
+# Định nghĩa ConfigMap
+##################################################
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: example-configmap
+  namespace: default
+data:
+  # Configuration Values are stored as key-value pairs
+  user.db.url.cfg.map: "userDB123-ConfigMap"
+  username.gmail.cfg.map: "userName.GMail456.ConfigMap"
+  mongodb.url.cfg.map: "mongoDBUrl777-ConfigMap"
+---
+
+#############################################################################
+# Định nghĩa PODs có sử dụng các biến môi trường được config từ ConfigMap
+#############################################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: use-config-maps-deployment
+spec:
+  # số POD tạo ra
+  replicas: 1
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=main-service"
+  selector:
+    matchLabels:
+      app: main-service
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: use-config-map-pod-tmpl
+      labels:
+        app: main-service
+    spec:
+      containers:
+      - name: use-config-map-container
+        image: tdchien1982/k8s:use-config-map-v1
+
+        # Refer các biến môi trường lấy từ ConfigMap
+        env:
+          - name: USER_DB_URL
+            valueFrom:
+              configMapKeyRef:
+                name: example-configmap
+                key: user.db.url.cfg.map
+          - name: USERNAME_GMAIL
+            valueFrom:
+              configMapKeyRef:
+                name: example-configmap
+                key: username.gmail.cfg.map
+          - name: MONGODB_URL
+            valueFrom:
+              configMapKeyRef:
+                name: example-configmap
+                key: mongodb.url.cfg.map
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: 9244
+
+##############################################
+# Định nghĩa Service để tạo traffic cho Pods
+##############################################
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s2s-use-config-map
+spec:
+  selector:
+    app: main-service
+  type: ClusterIP
+  ports:
+    - name: config-port-use-config-map
+      port: 5140 # Port của Service định nghĩa ra
+      targetPort: 9244 # Port trên các PODS
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: server-s2s-use-config-map
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+   - http:
+       paths:
+       - path: /
+         pathType: Prefix
+         backend:
+           service:
+             name: s2s-use-config-map
+             port:
+               number: 5140 # Service giao tiếp qua port 5140

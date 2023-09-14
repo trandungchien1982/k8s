@@ -1,0 +1,4 @@
+
+userdb.url: ${USER_DB_URL:localhost}
+username.gmail: ${USERNAME_GMAIL:test_user}
+mongodb.url: ${MONGODB_URL:mongo_localhost}

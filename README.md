@@ -79,40 +79,43 @@ D:\Projects\k8s
 ```
 ==============================================================
 
-# Ví dụ [04.ShowAllEnvs]
+# Ví dụ [05.UseConfigMap]
 ==============================================================
 
 Ta sẽ deploy 1 pod chứa 1 container & show tất cả environment variable của hệ thống để kiểm tra:
-- App Java Spring Boot xuất ra port 9234, map ra port của pod là 9234
+- App Java Spring Boot xuất ra port 9244, map ra port của pod là 9244
+- App Java sẽ sử dụng 3 biến config nằm trong file application.yaml như sau:
+    - userdb.service.url: ${USER_DB_URL:localhost}
+    - username.gmail:     ${USERNAME_GMAIL:test_user}
+    - mongodb.url:        ${MONGODB_URL:mongo_localhost}
 - Các pods được gắn label là `app: main-service`
-- Tạo Service điều hướng traffic tới Pods dựa theo label `app: main-service`, service mở cổng `5130` và mapping vào cổng `9234` của các pods đã chọn
-- Tạo Ingress để mapping cổng `80` của Cluster với cổng `5130` của Service
+- Tạo Service điều hướng traffic tới Pods dựa theo label `app: main-service`, service mở cổng `5140` và mapping vào cổng `9244` của các pods đã chọn
+- Tạo Ingress để mapping cổng `80` của Cluster với cổng `5140` của Service
 - Bản thân k3d đã tạo 1 Proxy Server để mapping port `80` của Cluster ra port `7100` của laptop/desktop
 
-https://doc.traefik.io/traefik/providers/kubernetes-ingress/<br/>
-(Sử dụng Ingress Traefik Controller)
-
-Ingress dùng để tạo quy tắc traffic HTTP/HTTPS request từ public network vào trong Cluster
-Nó đóng vai trò như một Proxy Server (API Gateway cho Cluster)
-
-Thông thường Ingress sẽ điều hướng request từ bên ngoài vào trong service chính của Cluster mà thôi.
-Các services khác bên trong Cluster sẽ nói chuyện với nhau thông qua kind:Service,
-	thường dùng ClusterIP để giao tiếp với nhau.
+Tạo 1 ConfigMap định nghĩa sẵn các giá trị để mapping vào biến môi trường của các containers được chọn
+(mapping qua các pods đã chọn)
 	
 Truy cập vào service chính của Cluster:
-	http://localhost:7100/envs
+	http://localhost:7100/use-config-map
   
 ```shell script
-                FORWARD                   Ingress           Service(:5130)+LB
-localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(JavaApp:9234)
+                FORWARD                   Ingress           Service(:5140)+LB
+localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(JavaApp:9244)
 ```
 
-- Phần Ingress tạo bằng YAML
+- Chaỵ App Java từ CLI dùng Gradle:
 ```shell script
-kubectl apply -f deploy-show-all-envs.yaml
+  cd spring-rest-project
+  ./gradlew bootRun
+``` 
+
+- Apply các resources vào K8S
+```shell script
+kubectl apply -f deploy-use-config-maps.yaml
 ```
 
 - Xóa resource
 ```shell script
-kubectl delete -f deploy-show-all-envs.yaml
+kubectl delete -f deploy-use-config-maps.yaml
 ```
