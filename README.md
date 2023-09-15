@@ -79,29 +79,29 @@ D:\Projects\k8s
 ```
 ==============================================================
 
-# Ví dụ [05.UseConfigMap]
+# Ví dụ [06.UseSecrets]
 ==============================================================
 
 Ta sẽ deploy 1 pod chứa 1 container & show tất cả environment variable của hệ thống để kiểm tra:
-- App Java Spring Boot xuất ra port 9244, map ra port của pod là 9244
+- App Java Spring Boot xuất ra port 9266, map ra port của pod là 9266
 - App Java sẽ sử dụng 3 biến config nằm trong file application.yaml như sau:
-    - userdb.service.url: ${USER_DB_URL:localhost}
-    - username.gmail:     ${USERNAME_GMAIL:test_user}
-    - mongodb.url:        ${MONGODB_URL:mongo_localhost}
+    - user.pwd:        ${USER_PASSWORD:user-password}
+    - mongodb.pwd:     ${MONGO_DB_PWD:mongodb-password}
+    - mysql.pwd:       ${MYSQL_PWD:mysql-password}
 - Các pods được gắn label là `app: main-service`
-- Tạo Service điều hướng traffic tới Pods dựa theo label `app: main-service`, service mở cổng `5140` và mapping vào cổng `9244` của các pods đã chọn
-- Tạo Ingress để mapping cổng `80` của Cluster với cổng `5140` của Service
+- Tạo Service điều hướng traffic tới Pods dựa theo label `app: main-service`, service mở cổng `5160` và mapping vào cổng `9266` của các pods đã chọn
+- Tạo Ingress để mapping cổng `80` của Cluster với cổng `5160` của Service
 - Bản thân k3d đã tạo 1 Proxy Server để mapping port `80` của Cluster ra port `7100` của laptop/desktop
 
 Tạo 1 ConfigMap định nghĩa sẵn các giá trị để mapping vào biến môi trường của các containers được chọn
 (mapping qua các pods đã chọn)
 	
 Truy cập vào service chính của Cluster:
-	http://localhost:7100/use-config-map
+	http://localhost:7100/use-secrets
   
 ```shell script
-                FORWARD                   Ingress           Service(:5140)+LB
-localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(JavaApp:9244)
+                FORWARD                   Ingress           Service(:5160)+LB
+localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(JavaApp:9266)
 ```
 
 - Chaỵ App Java từ CLI dùng Gradle:
@@ -112,10 +112,10 @@ localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> P
 
 - Apply các resources vào K8S
 ```shell script
-kubectl apply -f deploy-use-config-maps.yaml
+kubectl apply -f deploy-use-secrets.yaml
 ```
 
 - Xóa resource
 ```shell script
-kubectl delete -f deploy-use-config-maps.yaml
+kubectl delete -f deploy-use-secrets.yaml
 ```

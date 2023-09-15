@@ -1,4 +1,4 @@
 
-userdb.url: ${USER_DB_URL:localhost}
-username.gmail: ${USERNAME_GMAIL:test_user}
-mongodb.url: ${MONGODB_URL:mongo_localhost}
+user.pwd: ${USER_PASSWORD:user-password}
+mongodb.pwd: ${MONGO_DB_PWD:mongodb-password}
+mysql.pwd: ${MYSQL_PWD:mysql-password}
