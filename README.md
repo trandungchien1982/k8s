@@ -43,41 +43,76 @@ D:\Projects\k8s
 ```
 ==============================================================
 
-# Ví dụ [02.TwoPublicServices]
+# Ví dụ [07.TwoPublicServicesWithDifferentNS]
 ==============================================================
 
-- Ta sẽ deploy 2 services và config Ingress Treafix tùy theo domain name request đến mà sẽ forward qua service thích hợp:
-    - Request đến `http://restful-service1.com` thì sẽ forward qua `service-1` (public LB)
-    - Request đến `http://restful-service2.com` thì sẽ forward qua `service-2` (public LB)
+- Ta sẽ deploy 2 services và config Ingress Treafix tùy theo domain name request đến mà sẽ forward qua service thích hợp:<br/>
+  (2 services này sẽ nằm trên 2 namespace khác nhau, và chúng đều thuộc chung 1 implementation ... )
+    - Request đến `http://dev.chien.com` thì sẽ forward qua service `main-service` thuộc namespace `dev-custom-ns`
+    - Request đến `http://stg.chien.com` thì sẽ forward qua service `main-service` thuộc namespace `stg-custom-ns`
     - Ta có thể giả lập 2 tên miền trên trong file /etc/hosts (Unbuntu 20.04) hoặc C:\Windows\system32\drivers\etc\hosts
     ```shell script
-        127.0.0.1 restful-service1.com
-        127.0.0.1 restful-service2.com
+        127.0.0.1 dev.chien.com
+        127.0.0.1 stg.chien.com
     ```
+  
+- Ingress cần được setup để forward Traffic qua các services thuộc namespace khác nhau :
+  - https://tech.aabouzaid.com/2022/08/2-ways-to-route-ingress-traffic-across-namespaces.html
+  - https://stackoverflow.com/questions/59844622/ingress-configuration-for-k8s-in-different-namespaces
+
+- View thông tin chi tiết của các namspace
+  ```shell script
+      kubectl get all -n dev-custom-ns
+      kubectl get all -n stg-custom-ns
+  ```
+
+- Ta sử dụng Docker Image demo của nginx vì nó khá gọn nhẹ & hiển thị các thông tin request cần thiết:<br/>
+  (https://hub.docker.com/r/nginxdemos/hello)
 
 - Bản thân k3d đã tạo 1 Proxy Server để mapping port `80` của Cluster ra port `7100` của laptop/desktop
 
 - Truy cập vào 2 service trên từ laptop/desktop như sau:<br/>
-    http://restful-service1.com:7100<br/>
-    http://restful-service2.com:7100<br/>
+  - http://dev.chien.com:7100
+  - http://stg.chien.com:7100
 	
 - Sơ đồ truy cập request như sau : 
 
 ```shell script
-                           FORWARD                   Ingress           Service(:5200)+LB
-restful-service1.com:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(nginx:80)
+                    FORWARD                   Ingress           Service(:5270)+LB of dev-custom-ns
+dev.chien.com:7100 ---------> ProxyServer:80 --------> Cluster -----------------------------------> Pods(nginx-demo:80)
 
 
-                           FORWARD                   Ingress           Service(:6200)+LB
-restful-service2.com:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(angular:80)
+                    FORWARD                   Ingress           Service(:5270)+LB of stg-custom-ns
+stg.chien.com:7100 ---------> ProxyServer:80 --------> Cluster -----------------------------------> Pods(nginx-demo:80)
 ```
+
+- Để điều hướng traffic vào 2 services của 2 namespace khác nhau, ta có 2 giải pháp:
+  - Mỗi namespace sẽ triển khai 1 Ingress riêng với domain riêng (trong demo này)
+  - Sử dụng 1 Ingress chung để điều hướng traffic qua 2 services trung gian, Service với type: ExternalService
+mỗi Service trung gian này sẽ forward qua service của dev-namespacce hoặc stg-namespace
 
 - Apply manifiest vào K8S
 ```shell script
-kubectl apply -f deploy-2-public-services.yaml
+  Dev Environment: 
+    ./02.deploy-dev-env.sh
+    ------------------------------------------------------
+    kubectl apply -f deploy-dev-namespace+Ingress.yaml
+    kubectl apply -f deploy-main-service-in-ns.yaml --namespace dev-custom-ns
+    
+  Stg Environment:
+    ./03.deploy-stg-env.sh
+    ------------------------------------------------------
+    kubectl apply -f deploy-stg-namespace+Ingress.yaml
+    kubectl apply -f deploy-main-service-in-ns.yaml --namespace stg-custom-ns
 ```
 
 - Xóa resource
 ```shell script
-kubectl delete -f deploy-2-public-services.yaml
+    ./04.delete-all.sh
+    -------------------------------------------------------
+    kubectl delete all --all --namespace dev-custom-ns
+    kubectl delete all --all --namespace stg-custom-ns
+    kubectl delete -f deploy-dev-namespace+Ingress.yaml
+    kubectl delete -f deploy-stg-namespace+Ingress.yaml
+    
 ```

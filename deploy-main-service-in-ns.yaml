@@ -1,0 +1,49 @@
+# Deployment for 1 public services (will be based on specified namespace on CLI)
+
+####################################
+# Main deployment: nginx
+####################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: service1-deployment
+spec:
+  # số POD tạo ra
+  replicas: 1
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=main-service"
+  selector:
+    matchLabels:
+      app: main-service
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: main-service-pod-tmpl
+      labels:
+        app: main-service
+    spec:
+      containers:
+      - name: main-service-container
+        image: tdchien1982/k8s:nginxdemos-hello-1.0
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: main-service
+spec:
+  selector:
+    app: main-service
+  type: ClusterIP
+  ports:
+    - name: config-port-main-service
+      port: 5270 # Port của Service định nghĩa ra
+      targetPort: 80 # Port trên các PODS
