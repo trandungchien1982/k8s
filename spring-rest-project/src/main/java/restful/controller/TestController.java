@@ -27,7 +27,7 @@ public class TestController {
 		}
 	}
 
-	@GetMapping("/envs")
+	@GetMapping("/envs-helm")
 	public String listEnvs() {
 		String curTime = DateFormatUtils.format(new Date(), "HH:mm:ss");
 		log.info("Show list ENVs at time: " + curTime);
@@ -36,7 +36,9 @@ public class TestController {
 
 		Map<String, String> env = System.getenv();
 
-		builder.append("<br>Show list ENVs at time: " + curTime + " -- " + counter.getAndIncrement());
+		builder.append("<br>Show list ENVs at time: " + curTime
+				+ "-- <b style='color:blue; font-weight:bold; font-size: 25px;'> Counter in the same host: " + counter.getAndIncrement() + "</b><br/>"
+				+ "-- <b style='color:red;  font-weight:bold; font-size: 25px;'> We will use Helm 3 :) </b>");
 		builder.append("<br>");
 		env.keySet().stream().sorted().collect(Collectors.toList()).forEach(key -> {
 			String val = env.get(key);

@@ -79,18 +79,74 @@ D:\Projects\k8s
 ```
 ==============================================================
 
-# Ví dụ [04.ShowAllEnvs]
+# Ví dụ [08.ShowAllEnvs+Helm]
 ==============================================================
+
+**Tham khảo**
+- https://viblo.asia/p/helm-la-gi-no-co-lien-quan-gi-den-series-nay-Do754oAQlM6
+- https://docs.bitnami.com/tutorials/create-your-first-helm-chart
+- https://www.nexsoftsys.com/articles/deploy-java-microservice-application-on-kubernetes-with-helm.html
+- https://bitnami.com/stack/nginx/helm
+- https://www.youtube.com/watch?v=LWW8_S0dbG8
+  <br/>(Làm chủ Helm trong 60 phút)
+- https://www.youtube.com/watch?v=SMBkrYuDe5Y
+  <br/>(Helm bị ngừng phát triển? - Giải thích rõ vấn đề gây hiểu nhầm :D )
 
 Ta sẽ deploy 1 pod chứa 1 container & show tất cả environment variable của hệ thống để kiểm tra:
 - App Java Spring Boot xuất ra port 9234, map ra port của pod là 9234
 - Các pods được gắn label là `app: main-service`
-- Tạo Service điều hướng traffic tới Pods dựa theo label `app: main-service`, service mở cổng `5130` và mapping vào cổng `9234` của các pods đã chọn
-- Tạo Ingress để mapping cổng `80` của Cluster với cổng `5130` của Service
+- Tạo Service điều hướng traffic tới Pods dựa theo label `app: main-service`, service mở cổng `9234` và mapping vào cổng `9234` của các pods đã chọn
+- Tạo Ingress để mapping cổng `80` của Cluster với cổng `9234` của Service
 - Bản thân k3d đã tạo 1 Proxy Server để mapping port `80` của Cluster ra port `7100` của laptop/desktop
+- Sử dụng Helm 3 làm công cụ deploy
 
-https://doc.traefik.io/traefik/providers/kubernetes-ingress/<br/>
-(Sử dụng Ingress Traefik Controller)
+**Thực hiện các lệnh Helm**
+<br/>(Vào folder gốc ./my-helm-chart để thực hiện các lệnh helm)
+<br/>(giả định chart name của chúng ta là `dragon-chart`)
+- Tiến hành install HELM Chart (Revision 1)
+```shell
+helm install dragon-chart ./
+```
+- Gỡ bỏ cài đặt HELM Chart vừa rồi
+```shell
+helm uninstall dragon-chart
+```
+<br/>
+
+- Upgrade 1 HELM Chart (tự động tăng Revision lên), chỉ dành cho HELM Chart đã được install rồi
+```shell
+helm upgrade dragon-chart ./
+```
+- Upgrade 1 HELM Chart (tự động tăng Revision lên) và chỉnh sửa lại số replicas = 10
+```shell
+helm upgrade dragon-chart ./ --set replicas=10
+```
+- Xem lịch sử cài đặt của HELM Chart (Revision logs)
+```shell
+helm history dragon-chart
+```
+- Rollback lại một Revision nào đó của HELM Chart
+```shell
+helm rollback dragon-chart 3
+```
+<br/>
+
+- Kiểm tra lỗi Chart
+```shell
+helm lint ./
+```
+- Kiểm tra nội dung các manifest K8S thực tế sẽ sinh ra
+```shell
+helm template dragon-chart ./
+```
+- Chạy thử Dry-Run cho việc install template
+```shell
+helm install dragon-chart --dry-run ./
+```
+
+
+https://doc.traefik.io/traefik/providers/kubernetes-ingress/
+<br/>(Sử dụng Ingress Traefik Controller)
 
 Ingress dùng để tạo quy tắc traffic HTTP/HTTPS request từ public network vào trong Cluster
 Nó đóng vai trò như một Proxy Server (API Gateway cho Cluster)
@@ -100,19 +156,9 @@ Các services khác bên trong Cluster sẽ nói chuyện với nhau thông qua 
 	thường dùng ClusterIP để giao tiếp với nhau.
 	
 Truy cập vào service chính của Cluster:
-	http://localhost:7100/envs
+	http://localhost:7100/envs-helm
   
 ```shell script
-                FORWARD                   Ingress           Service(:5130)+LB
+                FORWARD                   Ingress           Service(:9234)+LB
 localhost:7100 ---------> ProxyServer:80 --------> Cluster ------------------> Pods(JavaApp:9234)
-```
-
-- Phần Ingress tạo bằng YAML
-```shell script
-kubectl apply -f deploy-show-all-envs.yaml
-```
-
-- Xóa resource
-```shell script
-kubectl delete -f deploy-show-all-envs.yaml
 ```

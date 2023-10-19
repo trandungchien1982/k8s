@@ -1,0 +1,8 @@
+replicas: 2
+
+service:
+  port: 9234
+
+custom_envs:
+  chien01: Value 01 from HELM
+  chien02: Value 02 from Helm Config

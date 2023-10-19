@@ -1,0 +1,9 @@
+apiVersion: v2
+name: chien-helm-chart
+description: A Helm chart for Kubernetes - deploy the project Java RESTful
+
+type: application
+
+version: 0.1.0
+
+appVersion: "chien.test.beta1.0.0"

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  selector: {{ include "restful.labels" . | nindent 4 }}
+  type: ClusterIP
+  ports:
+    - name: config-port-show-env
+      port: {{ .Values.service.port }} # Port của Service định nghĩa ra
+      targetPort: {{ .Values.service.port }} # Port trên các PODS/Containers

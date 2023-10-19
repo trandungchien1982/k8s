@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # tên của deployment
+  name: {{ .Chart.Name }}
+spec:
+  # số POD tạo ra
+  replicas: {{ .Values.replicas }}
+
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app: show-all-env-helm3"
+  selector:
+    matchLabels: {{ include "restful.labels" . | nindent 6 }}
+
+  # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
+  template:
+    metadata:
+      name: show-all-env-helm3-tmpl
+      labels: {{ include "restful.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: show-all-env-helm3-container
+        image: tdchien1982/k8s:show-all-envs-v2-helm
+        imagePullPolicy: Always
+        env:
+          - name: BIEN_MOI_TRUONG_01
+            value: {{ .Values.custom_envs.chien01 }}
+          - name: BIEN_MOI_TRUONG_02
+            value: {{ .Values.custom_envs.chien02 }}
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        ports:
+          - containerPort: {{ .Values.service.port }}
