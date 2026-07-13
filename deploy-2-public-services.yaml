@@ -69,7 +69,7 @@ spec:
   # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
   template:
     metadata:
-      name: service2-pod-tmpl
+      name: service2-pod-tmpl1
       labels:
         app: service-2
     spec:
