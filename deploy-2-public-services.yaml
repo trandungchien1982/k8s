@@ -107,7 +107,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: two-public-services-routing232
+  name: two-public-services-treing232
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
     kubernetes.io/ingress.class: traefik
