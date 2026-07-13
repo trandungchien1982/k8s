@@ -114,7 +114,7 @@ metadata:
     traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
 spec:
   rules:
-    - host: restful-service1.com
+    - host: k8s-service1.tdc.vv
       http:
         paths:
           - path: /
@@ -125,7 +125,7 @@ spec:
                 port:
                   number: 5200     # Service giao tiếp qua port 5200
 
-    - host: restful-service2.com
+    - host: k8s-service2.tdc.vv
       http:
         paths:
           - path: /
