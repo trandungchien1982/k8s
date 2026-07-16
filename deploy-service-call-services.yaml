@@ -29,8 +29,8 @@ spec:
         image: nginx
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "100m"
+            memory: "256Mi"
+            cpu: "300m"
         ports:
           - containerPort: 80
 ---
@@ -81,8 +81,8 @@ spec:
               value: "80"
           resources:
             limits:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: "256Mi"
+              cpu: "300m"
           ports:
             - containerPort: 80
 ---
