@@ -96,20 +96,20 @@ mỗi Service trung gian này sẽ forward qua service của dev-namespacce ho�
   Dev Environment: 
     ./02.deploy-dev-env.sh
     ------------------------------------------------------
-    kubectl apply -f deploy-NS+Ingress.yaml
-    kubectl apply -f deploy-main-service-in-ns.yaml --namespace dev-custom-ns
+    kubectl apply -f 01.NS+Ingress.yaml
+    kubectl apply -f 02.MySQL-2Replicas.yaml --namespace dev-custom-ns
     
   Stg Environment:
     ./03.deploy-stg-env.sh
     ------------------------------------------------------
-    kubectl apply -f deploy-NS+Ingress.yaml
-    kubectl apply -f deploy-main-service-in-ns.yaml --namespace stg-custom-ns
+    kubectl apply -f 01.NS+Ingress.yaml
+    kubectl apply -f 02.MySQL-2Replicas.yaml --namespace stg-custom-ns
 ```
 
 - Xóa resource
 ```shell script
     ./04.delete-all.sh
     -------------------------------------------------------
-    kubectl delete -f deploy-main-service-in-ns.yaml
+    kubectl delete -f 02.MySQL-2Replicas.yaml
     
 ```

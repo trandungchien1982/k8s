@@ -1,0 +1,58 @@
+# Deployment for 2 public services
+
+###############################################################
+# Tạo 2 namespace khác nhau cho 2 môi trường Dev + Stg
+###############################################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mysql
+---
+
+#################################################
+# Service-Dev thuộc vào namespace chứa Ingress hiện tại, và nó được map qua main-service của `dev-custom-ns`
+#################################################
+kind: Service
+apiVersion: v1
+metadata:
+  name: dev-service-forward
+spec:
+  type: ExternalName
+  externalName: main-service.dev-custom-ns.svc.cluster.local
+---
+
+##################################################
+## Config Ingress để routing HTTP Request dựa theo domain name để forward vào `main-service` thuộc namespace khác nhau (dev/stg)
+##################################################
+#---
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: two-public-services-http
+#  annotations:
+#    ingress.kubernetes.io/ssl-redirect: "false"
+#    kubernetes.io/ingress.class: traefik
+#    traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
+#spec:
+#  rules:
+#    - host: dev.chien.com
+#      http:
+#        paths:
+#          - path: /
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: dev-service-forward
+#                port:
+#                  number: 5270     # Service giao tiếp qua port 5270
+#
+#    - host: stg.chien.com
+#      http:
+#        paths:
+#          - path: /
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: stg-service-forward
+#                port:
+#                  number: 5270     # Service giao tiếp qua port 5270
