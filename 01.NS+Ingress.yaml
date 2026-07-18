@@ -1,58 +1,36 @@
-# Deployment for 2 public services
 
-###############################################################
-# Tạo 2 namespace khác nhau cho 2 môi trường Dev + Stg
-###############################################################
+# Apply MySQL:3306 to outer traffic
+
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: mysql
----
-
-#################################################
-# Service-Dev thuộc vào namespace chứa Ingress hiện tại, và nó được map qua main-service của `dev-custom-ns`
-#################################################
 kind: Service
-apiVersion: v1
 metadata:
-  name: dev-service-forward
+  name: mysql-0-service
+  namespace: mysql
 spec:
-  type: ExternalName
-  externalName: main-service.dev-custom-ns.svc.cluster.local
----
+  type: ClusterIP
 
-##################################################
-## Config Ingress để routing HTTP Request dựa theo domain name để forward vào `main-service` thuộc namespace khác nhau (dev/stg)
-##################################################
-#---
-#apiVersion: networking.k8s.io/v1
-#kind: Ingress
-#metadata:
-#  name: two-public-services-http
-#  annotations:
-#    ingress.kubernetes.io/ssl-redirect: "false"
-#    kubernetes.io/ingress.class: traefik
-#    traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
-#spec:
-#  rules:
-#    - host: dev.chien.com
-#      http:
-#        paths:
-#          - path: /
-#            pathType: Prefix
-#            backend:
-#              service:
-#                name: dev-service-forward
-#                port:
-#                  number: 5270     # Service giao tiếp qua port 5270
-#
-#    - host: stg.chien.com
-#      http:
-#        paths:
-#          - path: /
-#            pathType: Prefix
-#            backend:
-#              service:
-#                name: stg-service-forward
-#                port:
-#                  number: 5270     # Service giao tiếp qua port 5270
+  selector:
+    app: mysql
+    statefulset.kubernetes.io/pod-name: mysql-0
+
+  ports:
+    - name: mysql
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: mysql-0-route
+  namespace: mysql
+spec:
+  entryPoints:
+    - mysql
+
+  routes:
+    - match: HostSNI(`*`)
+      services:
+        - name: mysql-0-service
+          port: 3306
