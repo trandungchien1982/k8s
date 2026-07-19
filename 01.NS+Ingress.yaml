@@ -1,5 +1,7 @@
 
 # Apply MySQL:3306 to outer traffic
+# Hien tai chua dung den YAML config nay. Cu de tam vay ...
+# TODO: ...
 
 apiVersion: v1
 kind: Service

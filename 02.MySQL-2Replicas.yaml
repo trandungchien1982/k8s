@@ -1,3 +1,13 @@
+
+# Vi du ve trien khai StatefulSet voi MySQL instance
+# Cac replicas se duoc tao lan luot :
+# mysql-0
+# mysql-1
+# mysql-2
+# ....................
+# Va khi tang/giam replicas thi thu tu Init/Delete cung di lan luot tung pod mot
+#   (sequence, not parallel ...)
+
 apiVersion: v1
 kind: Namespace
 metadata:
