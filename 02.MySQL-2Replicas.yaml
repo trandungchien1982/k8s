@@ -38,7 +38,7 @@ metadata:
   namespace: mysql
 spec:
   serviceName: mysql-headless
-  replicas: 2
+  replicas: 4
 
   selector:
     matchLabels:
