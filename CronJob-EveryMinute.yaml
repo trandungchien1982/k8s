@@ -13,7 +13,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: print-system-info-recurring
-  namespace: test-job
+  namespace: test-cronjob
 spec:
   schedule: "* * * * *"
 
