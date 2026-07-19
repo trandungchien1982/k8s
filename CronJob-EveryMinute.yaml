@@ -1,50 +1,57 @@
 
-# Vi du ve trien khai Job, chay 1 lan duy nhat
+# Vi du ve trien khai Job, chay theo schedule, o day la 1 minute / 1 lan trigger
 # Ta dat Job nay nam trong namespace: test-job
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: test-job
+  name: test-cronjob
 ---
 
-# Job nay chi chay 1 lan, in he thong ra ...
+# Job nay se duoc kich hoat nhieu lan
+# thuc chat la sau moi phut se tao ra Job moi de chay ...
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
-  name: print-system-info
+  name: print-system-info-recurring
   namespace: test-job
 spec:
-  backoffLimit: 0
-  template:
-    metadata:
-      labels:
-        app: print-system-info
+  schedule: "* * * * *"
+
+  # Không cho phép lần chạy mới nếu lần trước vẫn chưa hoàn thành
+  concurrencyPolicy: Forbid
+
+  # Giữ lại 3 Job thành công gần nhất
+  successfulJobsHistoryLimit: 3
+
+  # Giữ lại 1 Job thất bại
+  failedJobsHistoryLimit: 1
+
+  jobTemplate:
     spec:
-      restartPolicy: Never
-      containers:
-        - name: system-info
-          image: alpine:3.20
-          command:
-            - /bin/sh
-            - -c
-            - |
-              echo "=============================================="
-              echo "This is the test job for run once job at time $(date '+%d/%b/%Y %H:%M:%S')"
-              echo
-              echo "Here is the system information:"
-              echo "----------------------------------------------"
-              echo "Hostname : $(hostname)"
-              echo "Kernel   : $(uname -r)"
-              echo "OS       : $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
-              echo
-              echo "CPU Information"
-              cat /proc/cpuinfo | grep "model name" | head -1
-              echo "CPU Cores: $(nproc)"
-              echo
-              echo "Memory Information"
-              free -h
-              echo
-              echo "Disk Information"
-              df -h
-              echo
-              echo "=============================================="
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: print-system-info-recurring
+        spec:
+          restartPolicy: Never
+
+          containers:
+            - name: system-info
+              image: alpine:3.20
+
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Hi, this is the recurring job that executes in every minute, current time: $(date '+%d/%b/%Y %H:%M:%S')"
+                  echo
+
+                  RAM_INFO=$(free -h | awk '/Mem:/ {print "Total="$2", Used="$3", Free="$4}')
+                  CPU_INFO="$(grep 'model name' /proc/cpuinfo | head -1 | cut -d':' -f2 | sed 's/^ *//')"
+                  CPU_CORES=$(nproc)
+
+                  echo "This is the short information:"
+                  echo "RAM : ${RAM_INFO}"
+                  echo "CPU : ${CPU_INFO} (${CPU_CORES} cores)"
+                  echo "----------------------------------------------------------------------------------------------"
