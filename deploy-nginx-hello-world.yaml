@@ -7,7 +7,7 @@ metadata:
   name: nginx-hello-world-deployment
 spec:
   # số POD tạo ra
-  replicas: 100
+  replicas: 7
 
   # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=main-service-hello-world"
   selector:
