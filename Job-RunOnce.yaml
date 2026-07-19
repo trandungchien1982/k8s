@@ -1,0 +1,50 @@
+
+# Vi du ve trien khai Job, chay 1 lan duy nhat
+# Ta dat Job nay nam trong namespace: test-job
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-job
+---
+
+# Job nay chi chay 1 lan, in he thong ra ...
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: print-system-info
+  namespace: test-job
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: print-system-info
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: system-info
+          image: alpine:3.20
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "=============================================="
+              echo "This is the test job for run once job at time $(date '+%d/%b/%Y %H:%M:%S')"
+              echo
+              echo "Here is the system information:"
+              echo "----------------------------------------------"
+              echo "Hostname : $(hostname)"
+              echo "Kernel   : $(uname -r)"
+              echo "OS       : $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '"')"
+              echo
+              echo "CPU Information"
+              cat /proc/cpuinfo | grep "model name" | head -1
+              echo "CPU Cores: $(nproc)"
+              echo
+              echo "Memory Information"
+              free -h
+              echo
+              echo "Disk Information"
+              df -h
+              echo
+              echo "=============================================="
