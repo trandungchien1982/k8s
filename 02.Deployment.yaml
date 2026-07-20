@@ -7,7 +7,7 @@ metadata:
   name: demo-app
   namespace: test-job-then-deployment
 spec:
-  replicas: 5
+  replicas: 0
 
   selector:
     matchLabels:
