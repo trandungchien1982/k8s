@@ -1,0 +1,46 @@
+
+# Vi du ve trien khai Job chay tuan tu (su dung PreSync + Sync-Wave trong ArgoCD
+# PreSync giup cho Job nay duoc uu tien chay truoc cac Resource khac
+# Sync-Wave giup dam bao thu tu giua cac Jobs duoc chay.
+
+# Job nay se duoc kich hoat 1 lan
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job3
+  namespace: test-job-run-in-sequence
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    # Gia tri sync-wave thap hon : job3 chay sau job2
+    argocd.argoproj.io/sync-wave: "-10"
+
+    # Truoc khi execute job thi se tien hanh xoa Job cu (neu co)
+    # HookSucceeded cung xoa Job nay khi xu ly thanh cong ...
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 5
+  ttlSecondsAfterFinished: 300
+
+  template:
+    metadata:
+      labels:
+        app: job3
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: liquid-data
+          image: alpine:3.20
+
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "We will process Liquid resources data: $(date '+%d/%b/%Y %H:%M:%S')"
+
+              echo "Starting LIQUID resources ..."
+              sleep 10
+
+              echo "Finish LIQUID resources data successfully ... "
+              exit 0
+

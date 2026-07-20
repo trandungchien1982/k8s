@@ -1,32 +1,38 @@
 
-# Vi du ve trien khai Job, no se duoc chay dau tien
-# Khi Job nay hoan thanh - thi ArgoCD se trigger Deployment
+# Vi du ve trien khai Job chay tuan tu (su dung PreSync + Sync-Wave trong ArgoCD
+# PreSync giup cho Job nay duoc uu tien chay truoc cac Resource khac
+# Sync-Wave giup dam bao thu tu giua cac Jobs duoc chay.
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: test-job-then-deployment
+  name: test-job-run-in-sequence
+  annotations:
+    # Uu tien chay resource nay truoc (trong ArgoCD)
+    argocd.argoproj.io/hook: PreSync
 ---
 
 # Job nay se duoc kich hoat 1 lan
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: demo-app-db-migration
-  namespace: test-job-then-deployment
+  name: job1
+  namespace: test-job-run-in-sequence
   annotations:
     argocd.argoproj.io/hook: PreSync
-    #argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    # Gia tri sync-wave thap nhat : job1 chay dau tien
+    argocd.argoproj.io/sync-wave: "-30"
+
     # Truoc khi execute job thi se tien hanh xoa Job cu (neu co)
     # HookSucceeded cung xoa Job nay khi xu ly thanh cong ...
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
-  backoffLimit: 2
+  backoffLimit: 5
   ttlSecondsAfterFinished: 300
 
   template:
     metadata:
       labels:
-        app: demo-app-db-migration
+        app: job1
     spec:
       restartPolicy: Never
 

@@ -5,9 +5,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: demo-app
-  namespace: test-job-then-deployment
+  namespace: test-job-run-in-sequence
 spec:
-  replicas: 10
+  replicas: 7
 
   selector:
     matchLabels:
@@ -45,7 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: demo-app
-  namespace: test-job-then-deployment
+  namespace: test-job-run-in-sequence
 spec:
   selector:
     app: demo-app
