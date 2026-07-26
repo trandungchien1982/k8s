@@ -5,7 +5,7 @@ metadata:
   name: s2s-user-service-deployment
 spec:
   # số POD tạo ra
-  replicas: 19
+  replicas: 29
 
   # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=s2s-user-service-deployment"
   selector:
