@@ -27,8 +27,8 @@ spec:
             value: "9242"
         resources:
           limits:
-            memory: "512Mi"
-            cpu: "500m"
+            memory: "1024Mi"
+            cpu: "900m"
         ports:
           - containerPort: 9242
 ---
