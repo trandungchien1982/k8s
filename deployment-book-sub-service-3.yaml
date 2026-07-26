@@ -5,7 +5,7 @@ metadata:
   name: s2s-book-sub-service-3-deployment
 spec:
   # số POD tạo ra
-  replicas: 2
+  replicas: 7
 
   # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=s2s-book-sub-service-3"
   selector:
