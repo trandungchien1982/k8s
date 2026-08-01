@@ -107,14 +107,14 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: two-public-services-treing232fdfdffweewdfdddsdfrrerre
+  name: two-public-services-duy
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
 spec:
   rules:
-    - host: k8s-service1.tdc.vv
+    - host: k8s-main-service1.tdchien.com
       http:
         paths:
           - path: /
@@ -125,7 +125,7 @@ spec:
                 port:
                   number: 5200     # Service giao tiếp qua port 5200
 
-    - host: k8s-service2.tdc.vv
+    - host: k8s-main-service.tdchien.com
       http:
         paths:
           - path: /
