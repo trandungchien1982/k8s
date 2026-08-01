@@ -5,7 +5,7 @@ metadata:
   name: s2s-main-service-deployment
 spec:
   # số POD tạo ra
-  replicas: 25
+  replicas: 4
 
   # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=s2s-main-service"
   selector:
