@@ -114,7 +114,7 @@ metadata:
     traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
 spec:
   rules:
-    - host: k8s-main-service1.tdchien.com
+    - host: nginx-app.tdchien.com
       http:
         paths:
           - path: /
