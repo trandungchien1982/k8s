@@ -10,7 +10,7 @@ metadata:
   name: service1-deployment
 spec:
   # số POD tạo ra
-  replicas: 3
+  replicas: 4
 
   # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-1"
   selector:
@@ -59,7 +59,7 @@ metadata:
   name: service2-deployment
 spec:
   # số POD tạo ra
-  replicas: 2
+  replicas: 3
 
   # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-2"
   selector:
