@@ -1,4 +1,5 @@
 # Deployment for 2 public services
+# (Using Kong Ingress Controller instead Traefik Ingress Controller)
 
 ####################################
 # Service 01: nginx
@@ -7,25 +8,25 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   # tên của deployment
-  name: service1-deployment
+  name: service1-kong-deployment
 spec:
   # số POD tạo ra
   replicas: 3
 
-  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-1"
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-1-kong"
   selector:
     matchLabels:
-      app: service-1
+      app: service-1-kong
 
   # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
   template:
     metadata:
-      name: service1-pod-tmpl
+      name: service1-kong-pod-tmpl
       labels:
-        app: service-1
+        app: service-1-kong
     spec:
       containers:
-      - name: service1-container
+      - name: service1-kong-container
         image: nginx
         resources:
           limits:
@@ -37,13 +38,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: s2s-service1
+  name: s2s-service1-kong
 spec:
   selector:
-    app: service-1
+    app: service-1-kong
   type: ClusterIP
   ports:
-    - name: config-port-service1
+    - name: config-port-service1-kong
       port: 5200 # Port của Service định nghĩa ra
       targetPort: 80 # Port trên các PODS
 
@@ -56,25 +57,25 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   # tên của deployment
-  name: service2-deployment
+  name: service2-kong-deployment
 spec:
   # số POD tạo ra
   replicas: 2
 
-  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-2"
+  # thiết lập các POD do deploy quản lý, là POD có nhãn  "app=service-2-kong"
   selector:
     matchLabels:
-      app: service-2
+      app: service-2-kong
 
   # Định nghĩa mẫu POD, khi cần Deploy sử dụng mẫu này để tạo Pod
   template:
     metadata:
-      name: service2-pod-ty6684433
+      name: service2-kong-pod-ty6684433
       labels:
-        app: service-2
+        app: service-2-kong
     spec:
       containers:
-        - name: service2-container
+        - name: service2-kong-container
           image: tdchien1982/angular:10.build-docker-nginx
           env:
             - name: PORT
@@ -89,49 +90,73 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: s2s-service2
+  name: s2s-service2-kong
 spec:
   selector:
-    app: service-2
+    app: service-2-kong
   type: ClusterIP
   ports:
-    - name: config-port-service2
+    - name: config-port-service2-kong
       port: 6200 # Port của Service định nghĩa ra
       targetPort: 80 # Port trên các PODS
 
 
 #################################################
-# Config Ingress để routing HTTP Request dựa theo domain name để forward vào `service-1` hoặc `service-2`
+# Kong Ingress
+# Config Ingress để routing HTTP Request dựa theo domain name để forward vào `service-1-kong` hoặc `service-2-kong`
+#
+# k8s-service1.tdc.vv -> s2s-service1:5200
+# k8s-service2.tdc.vv -> s2s-service2:6200
 #################################################
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
+
 metadata:
-  name: two-public-services-treing232fdfdffweewdfdddsdfrrerre
+  name: two-public-services-kong-ingress-controller
+
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
-    kubernetes.io/ingress.class: traefik
-    traefik.ingress.kubernetes.io/rewrite-target: / # set path to result request
+    # Keep original path when forwarding to upstream service
+    konghq.com/strip-path: "false"
+
 spec:
+
+  ingressClassName: kong
+
   rules:
-    - host: k8s-service1.tdc.vv
+    # =========================================================
+    # Service 01
+    # =========================================================
+    - host: k8s-service1-kong.tdc.vv
+
       http:
         paths:
+
           - path: /
             pathType: Prefix
+
             backend:
               service:
                 name: s2s-service1
-                port:
-                  number: 5200     # Service giao tiếp qua port 5200
 
-    - host: k8s-service2.tdc.vv
+                port:
+                  number: 5200
+
+
+    # =========================================================
+    # Service 02
+    # =========================================================
+    - host: k8s-service2-kong.tdc.vv
+
       http:
         paths:
+
           - path: /
             pathType: Prefix
+
             backend:
               service:
                 name: s2s-service2
+
                 port:
-                  number: 6200     # Service giao tiếp qua port 6200
+                  number: 6200

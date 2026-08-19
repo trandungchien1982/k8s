@@ -74,10 +74,10 @@ restful-service2.com:7100 ---------> ProxyServer:80 --------> Cluster ----------
 
 - Apply manifiest vào K8S
 ```shell script
-kubectl apply -f deploy-2-public-services.yaml
+kubectl apply -f deploy-2-public-services-kong-gateway.yaml
 ```
 
 - Xóa resource
 ```shell script
-kubectl delete -f deploy-2-public-services.yaml
+kubectl delete -f deploy-2-public-services-kong-gateway.yaml
 ```
