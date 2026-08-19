@@ -8,7 +8,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   # tên của deployment
-  name: service1-kong-deployment
+  name: service1-kong-deployment1
 spec:
   # số POD tạo ra
   replicas: 3
