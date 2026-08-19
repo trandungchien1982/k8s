@@ -137,7 +137,7 @@ spec:
 
             backend:
               service:
-                name: s2s-service1
+                name: s2s-service1-kong
 
                 port:
                   number: 5200
@@ -156,7 +156,7 @@ spec:
 
             backend:
               service:
-                name: s2s-service2
+                name: s2s-service2-kong
 
                 port:
                   number: 6200
