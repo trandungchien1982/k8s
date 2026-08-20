@@ -116,8 +116,18 @@ metadata:
   name: two-public-services-kong-ingress-controller
 
   annotations:
+
+    konghq.com/plugins: >
+      webhook4-cors,
+      webhook4-rate-limit,
+      webhook4-request-size,
+      webhook4-request-transformer,
+      webhook4-response-transformer
+
     # Keep original path when forwarding to upstream service
     konghq.com/strip-path: "false"
+    konghq.com/preserve-host: "true"
+
 
 spec:
 
