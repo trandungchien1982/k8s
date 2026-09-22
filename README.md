@@ -43,6 +43,7 @@ D:\Projects\k8s
 ```
 ==============================================================
 
-# Ví dụ [13.DaemonSet]
+# Ví dụ [14.Prometheus+Demo]
 ==============================================================
-Mỗi Node sẽ được tự động tạo 1 pod tương ứng để xử lý các tác vụ chung về infrastructure, ...
+Triển khai Prometheus Server + Grafana để monitoring metrics từ Spring Boot Apps : orders + users ...
+Tham khảo: /apps/41.Prometheus

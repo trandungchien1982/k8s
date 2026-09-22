@@ -1,0 +1,32 @@
+grafana:
+  enabled: true
+
+alertmanager:
+  enabled: true
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    # Allow custom ServiceMonitor resources without requiring Helm release labels.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+    retention: 15d
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          # storageClassName: <your-storage-class>
