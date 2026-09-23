@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: saga
+      POSTGRES_PASSWORD: saga
+      POSTGRES_DB: postgres
+    ports: ["5432:5432"]
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  kafka:
+    image: apache/kafka:4.1.0
+    hostname: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports: ["9092:9092"]
+
+  temporal:
+    image: temporalio/auto-setup:1.28.1
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: saga
+      POSTGRES_PWD: saga
+      POSTGRES_SEEDS: postgres
+    depends_on: [postgres]
+    ports: ["7233:7233"]
+
+  temporal-ui:
+    image: temporalio/ui:2.41.0
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+    depends_on: [temporal]
+    ports: ["8088:8080"]
+
+  order-service:
+    build: { context: ., dockerfile: order-service/Dockerfile }
+    environment: { DB_URL: jdbc:postgresql://postgres:5432/orders, KAFKA_BOOTSTRAP_SERVERS: kafka:9092, TEMPORAL_TARGET: temporal:7233 }
+    depends_on: [postgres, kafka, temporal]
+    ports: ["8081:8080"]
+
+  inventory-service:
+    build: { context: ., dockerfile: inventory-service/Dockerfile }
+    environment: { DB_URL: jdbc:postgresql://postgres:5432/inventory, KAFKA_BOOTSTRAP_SERVERS: kafka:9092 }
+    depends_on: [postgres, kafka]
+    ports: ["8082:8080"]
+
+  payment-service:
+    build: { context: ., dockerfile: payment-service/Dockerfile }
+    environment: { DB_URL: jdbc:postgresql://postgres:5432/payment, KAFKA_BOOTSTRAP_SERVERS: kafka:9092 }
+    depends_on: [postgres, kafka]
+    ports: ["8083:8080"]
+
+  shipping-service:
+    build: { context: ., dockerfile: shipping-service/Dockerfile }
+    environment: { DB_URL: jdbc:postgresql://postgres:5432/shipping, KAFKA_BOOTSTRAP_SERVERS: kafka:9092 }
+    depends_on: [postgres, kafka]
+    ports: ["8084:8080"]
+
+  temporal-worker:
+    build: { context: ., dockerfile: temporal-worker/Dockerfile }
+    environment:
+      TEMPORAL_TARGET: temporal:7233
+      ORDER_SERVICE_URL: http://order-service:8080
+      INVENTORY_SERVICE_URL: http://inventory-service:8080
+      PAYMENT_SERVICE_URL: http://payment-service:8080
+      SHIPPING_SERVICE_URL: http://shipping-service:8080
+    depends_on: [temporal, order-service, inventory-service, payment-service, shipping-service]
+    ports: ["8085:8080"]

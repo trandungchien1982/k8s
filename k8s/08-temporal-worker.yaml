@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-worker
+  namespace: saga-demo
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: temporal-worker }
+  template:
+    metadata:
+      labels: { app: temporal-worker }
+    spec:
+      containers:
+      - name: temporal-worker
+        image: saga-demo/temporal-worker:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports: [{ containerPort: 8080 }]
+        env:
+        - name: TEMPORAL_TARGET
+          value: "temporal:7233"
+        - name: ORDER_SERVICE_URL
+          value: "http://order-service:8080"
+        - name: INVENTORY_SERVICE_URL
+          value: "http://inventory-service:8080"
+        - name: PAYMENT_SERVICE_URL
+          value: "http://payment-service:8080"
+        - name: SHIPPING_SERVICE_URL
+          value: "http://shipping-service:8080"
+        readinessProbe:
+          httpGet: { path: /actuator/health/readiness, port: 8080 }
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet: { path: /actuator/health/liveness, port: 8080 }
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        resources:
+          requests: { cpu: 100m, memory: 192Mi }
+          limits: { cpu: 500m, memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-worker
+  namespace: saga-demo
+spec:
+  selector: { app: temporal-worker }
+  ports: [{ port: 8080, targetPort: 8080 }]

@@ -1,0 +1,20 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/payment}
+    username: ${DB_USER:saga}
+    password: ${DB_PASSWORD:saga}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+outbox:
+  publish-delay-ms: 1000

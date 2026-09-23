@@ -1,0 +1,6 @@
+CREATE DATABASE orders;
+CREATE DATABASE inventory;
+CREATE DATABASE payment;
+CREATE DATABASE shipping;
+CREATE DATABASE temporal;
+CREATE DATABASE temporal_visibility;
